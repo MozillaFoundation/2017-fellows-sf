@@ -266,7 +266,7 @@ packrat::status()
 &lt;&lt;amazing-plot, fig.caption=caption&gt;&gt;=
   caption = "Amazing figure showing amazing results." 
   library(ggplot2)
-  ggplot(aes(x<-c(2,3,4,2), y<-c(3,3,4,5)) + geom_point()
+  qplot(Sepal.Length, Petal.Length, data = iris, color = Species)
 @
 
 
