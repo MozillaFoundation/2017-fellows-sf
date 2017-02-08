@@ -186,7 +186,7 @@ stdenv.mkDerivation {
           <h1>How to setup an environment for a project</h1>
            <time>5 minutes</time>
            <p>Create a <code>default.nix</code> file in your project root folder.</p>
-           <p><pre><code class="haskell">with import <nixpkgs> {};
+           <p><pre><code class="haskell">with import &lt;nixpkgs&gt; {};
 stdenv.mkDerivation rec {
   name = "env";
   env = buildEnv { name = name; paths = buildInputs; };
