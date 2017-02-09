@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>TITLE OF YOUR SESSION</title>
+    <title>A truly reproducible scientific paper</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,400italic,500,500italic,700' rel='stylesheet' type='text/css'>
@@ -11,6 +11,12 @@
 
     <script src="https://code.jquery.com/jquery-2.1.4.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/javascript/script.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- highlightjs.org -->
+    <link rel="stylesheet" href="../assets/css/highlightjs-default.min.css">
+    <script src="../assets/javascript/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
   </head>
 
   <body>
@@ -36,15 +42,17 @@
       </div>
 
 
-      <h1>TITLE OF YOUR SESSION</h1>
+      <h1>A truly reproducible scientific paper</h1>
 
       <div class="meta-information">
         <p class="summary">
-          Summary of what the activity is about.
+          Teach anyone how to create reproducible reports, with reusable environments,
+          using technologies like Nix, LaTeX and KnitR for languages like R, Python and
+          JavaScript.
         </p>
         <div class="details">
           <time>60 minutes</time>
-          <p class="difficulty">For beginners</p>
+          <p class="difficulty">For intermediate</p>
         </div>
       </div>
 
@@ -60,7 +68,8 @@
           <h4>Materials</h4>
           <ul>
             <li>
-              Pen/pencil &amp; paper
+              Computer with a *NIX terminal, i.e., Linux, Mac or latest Windows 10 Insiders
+              Preview (bash).
             </li>
             <li>
               Collaborative document editor like
@@ -71,56 +80,246 @@
       </section>
 
       <h2 id="introduction">Introduction</h2>
+      <img src="img/layers.png" alt="software layers">
 
       <p>
-        Describe the activity or session outline here.
+        <strong>Reproducibility</strong> is a corner stone of the scientific method, yet it is many times
+        hard to achieve. In addition, the lack of <strong>reusability</strong> of many scientific
+        papers hinders the speed of research. These issues are <strong>not exclusive to
+        science</strong>, but also affect any data analysis domain. For a more detailed
+        introduction, please check the blog post <em><a href="https://medium.com/@bmpvieira/a-truly-reproducible-scientific-paper-5059b282ee9a">"A truly reproducible scientific paper?"</a></em>.
       </p>
       <p>
-        It is sometimes best to practice
-        building a markdown file in an offline program like <a href="http://25.io/mou/">Mou</a>
-        or an online one like <a href="http://dillinger.io/">Dilliger</a> before you post it online.
+        Here we describe one possible practical approach to try to solve these issues.
       </p>
 
       <h2 id="steps-to-complete">Steps to Complete</h2>
       <ol class="steps">
         <!-- Step 1 -->
         <li>
-          <h1>Background / Planning</h1>
+          <h1>Background</h1>
           <p>
-            Present some background information to support your session, replace this text with whatever links and resources you might need.
+            Participants should have a basic knowledge on how to use a UNIX command line
+            interface.
+            <a href="http://rik.smith-unna.com/command_line_bootcamp">Check this tutorial</a>
+            <!--<a href="https://nixos.org/wiki/Cheatsheet">Nix Cheatsheet</a>-->
           </p>
         </li>
 
         <!-- Step 2 -->
         <li>
-          <h1>Create a Resource</h1>
+          <h1>Install and use Nix</h1>
           <!-- you can add tim limitations to each step with the notation below -->
-          <!-- <time>3 minutes each</time> -->
+          <time>1 minute</time> 
           <p>
-            Provide some paragraph instructions on creating a resource or materials or notes that apply the backgroun you provided to other projects; if you have several projects, consider adopting a template "project structure"
-            that is consistent across projects, take a look at this <a href="https://github.com/CODESIGN2/Project-Structure">example</a>.
+            Make sure you linux distribution has at least <code>sudo</code>, <code>git</code>, <code>curl</code>, and <code>bzip2</code> installed. Then, run the following command:
+          </p>
+          <p>
+          <pre><code class="bash">curl https://nixos.org/nix/install | sh</code></pre>
+          </p>
+          <p>
+            This script will download a distribution-independent binary tarball containing Nix and its dependencies, and unpack it in /nix.
+          </p>
+          <p>
+            To load the Nix environment variables and start using it, do this:
+          </p>
+          <p>
+            <pre><code class="bash">. ~/.nix-profile/etc/profile.d/nix.sh</code></pre>
+          </p>
+
+        </li>
+        <!-- Step 3 -->
+        <li>
+          <h1>Basic Nix usage</h1>
+           <time>5 minutes</time>
+           <p>For more information, <a href="http://nixos.org/nix/manual">read the manual.</a></p>
+          <p>
+            <pre><code class="bash"># Search a package
+nix-env -qaP .*texlive.*
+
+# Install a package
+nix-env -i R
+# Check which R you're using
+which R
+## /home/user/.nix-profile/bin/R
+readlink $(which R)
+## /nix/store/xan5sz2xr9y5ys76l1lifav97fqqf3rd-R-3.2.4-wrapper/bin/R
+
+# Add a channel
+nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+# Update packages descriptions (like apt-get update)
+nix-channel --update
+# Upgrade all packages (like apt-get upgrade)
+nix-env -u
+</code></pre>
+
           </p>
         </li>
+        <!-- Step 3 -->
+        <li>
+          <h1>What is a Nix package description</h1>
+           <time>2 minutes</time>
+           <p>For more information, <a href="http://nixos.org/nix/manual">read the manual</a> or check <a href="http://funops.co/nix-cookbook/nix-by-example/">Nix by example</a></p>
+<pre><code class="haskell">{ stdenv, fetchurl, mydependency, tar }:
+
+stdenv.mkDerivation {
+  name = "mytool-2.1.1";
+  buildInputs = [ mydependency tar ];
+
+  builder = builtins.toFile "builder.sh" ''
+    source $stdenv/setup
+    PATH=$mydependency/bin:$tar/bin:$PATH
+    tar xvfz $src; cd mytool-*
+    ./configure --prefix=$out && make && make install
+  '';
+
+  src = fetchurl {
+    url = http://mytool.com/dist/tarballs/mytool-2.1.1.tar.gz;
+    sha256 = "4d7aab632375d01d04dbfcb709527ccea71a4aee";
+  };
+}
+</pre></code>
+        </li>
+        </li>
+        <!-- Step 3 -->
+        <li>
+          <h1>How to setup an environment for a project</h1>
+           <time>5 minutes</time>
+           <p>Create a <code>default.nix</code> file in your project root folder.</p>
+           <p><pre><code class="haskell">with import &lt;nixpkgs&gt; {};
+stdenv.mkDerivation rec {
+  name = "env";
+  env = buildEnv { name = name; paths = buildInputs; };
+  buildInputs = [
+    R
+    which # Required by Packrat
+    texlive.combined.scheme-basic
+  ];
+}
+</pre></code></p><p>Then run <code>nix-shell</code></p>
+        </li>
+        <!-- Step 3 -->
+        <li>
+          <h1>Use Nix in a reproducible way (optional)</h1>
+           <time>10 minutes</time>
+          Two things need to be considered for reproducibility. One is snapshotting the packages descriptions that describe how the tools are compiled, installed, and their dependencies. The other is snapshotting the source code and binaries of the tools themselves once installed, just in case any external source that the packages descriptions rely on disappears.
+          So for the packages descriptions, do:
+          <p>
+            <pre><code class="bash"># Clone packages descriptions git repository
+git clone https://github.com/NixOS/nixpkgs.git
+# Install packages using repo instead of channels
+nix-env -i R -f nixpkgs
+# Setup a Nix environment using repo instead of channels
+nix-shell -I nixpkgs=./nixpkgs . --command 'R'
+
+</code></pre>
+          </p>
+          <p>Then for the source code and binaries, just keep a backup copy of the <code>/nix</code> folder</p>
+        </li>
+
 
         <!-- Step 3 -->
         <li>
-          <h1>Make Supporting Materials</h1>
-          <!-- <time>30 minutes</time> -->
+          <h1>Manage R libraries with Packrat</h1>
+           <time>10 minutes</time> 
+           <p>For more information, visit <a href="https://rstudio.github.io/packrat/">Packrat's website</a></p>
           <p>
-            <strong>Make a THING</strong>: Provide instructions for whatever is needed to make supporting materials or a more polished version of the draft in step 2
+            In bash:
+            <pre><code class="bash">nix-shell -I nixpkgs=./nixpkgs . --command 'R'</code></pre>
+          </p>
+          <p>
+            In R:
+            <pre><code class="R">install.packages('packrat')
+# Warning in install.packages("packrat") :
+#  'lib = "/nix/store/x0fia7s1k49wgzb67cck6rq9zgwssf06-R-3.2.4/lib/R/library"' is not writable
+# Would you like to use a personal library instead?  (y/n) y
+library('packrat')
+packrat::init()
+install.packages("knitr")
+packrat::status()
+            </code></pre>
           </p>
         </li>
+        </li>
+        <li>
+          <h1>Write your paper</h1>
+          <!-- <time>30 minutes</time> -->
+          <p>
+            Create an <code>article.Rnw</code> file similar to the example below:
+          </p>
+<p>
+<pre><code class="latex">\documentclass{article}
+
+\begin{document}
+
+\author{John Smith}
+
+\title{A truly reproducible scientific paper}
+
+\maketitle
+
+\abstract{Reproducibility is a corner stone of the scientific method, yet it is many times hard to achieve. In addition, the lack of reusability of many scientific papers hinders the speed of research. These issues are not exclusive to science, but also affect any data analysis domain. Here we describe one possible practical approach to try to solve these issues.}
+
+\section{Results}
+
+
+&lt;&lt;amazing-plot, fig.caption=caption&gt;&gt;=
+  caption = "Amazing figure showing amazing results." 
+  library(ggplot2)
+  qplot(Sepal.Length, Petal.Length, data = iris, color = Species)
+@
+
+
+\end{document}
+</code></pre>
+</p>
+<p>
+In bash:
+<pre><code class="bash">Rscript -e "source('.Rprofile'); library(knitr); knit('article.Rnw')"
+pdflatex main.tex
+</code></pre>
+</p>
+
+
+</p>
+        </li>
+        <li>
+          <h1>Bonus: Put everything inside Docker</h1>
+          <!-- <time>30 minutes</time> -->
+          <p>
+            Check this blog post <a href="http://datakurre.pandala.org/2015/07/building-docker-containers-from-scratch.html">Building Docker containers from scratch using Nix</a> for existing infrastructure.
+          </p>
+        </li>
+
+        <li>
+          <h1>Bonus: Global Node.JS modules</h1>
+          <!-- <time>30 minutes</time> -->
+          <p>
+            <pre><code class="bash">sudo npm install -g json
+export PATH=$(dirname $(readlink $(which node))):$PATH</pre></code>
+          </p>
+        </li>
+
       </ol>
 
       <h2 id="glossary">Glossary</h2>
       <section class="glossary">
         <section class="term">
-          <h3>Term-to-Define</h3>
-          <p>Some definition of that term.</p>
+          <h3>Nix</h3>
+          <p>Functional package manager</p>
         </section>
         <section class="term">
-          <h3>Term-to-Define-2</h3>
-          <p>Some definition of another term.</p>
+          <h3>LaTeX</h3>
+          <p>Text typesetting language.</p>
+        </section>
+        <section class="term">
+          <h3>Packrat</h3>
+          <p>Dependencies management and snapshotting for R</p>
+        </section>
+        <section class="term">
+          <h3>KnitR</h3>
+          <p>An R tool to parse and render code embedded in a LaTeX file (works with other
+            languages besides R)</p>
         </section>
       </section>
 
@@ -135,7 +334,8 @@
       </ul>
 
       <h2>Credits &amp; Attribution</h2>
-      <p>This is any kudos or contributions you'd like to acknowledge</p>
+      <p><a href="http://helmsleytrust.org">The Leona M. and Harry B. Helmsley Charitable Trust</a>, <a href="https://science.mozilla.org">Mozilla Science Lab</a>, and <a href="http://wurmlab.github.io">WurmLab</a>
+      </p>
 
       <!--
       <section class="resources">
